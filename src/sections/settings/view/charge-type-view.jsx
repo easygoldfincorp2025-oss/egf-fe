@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -24,7 +24,7 @@ import { useAuthContext } from 'src/auth/hooks';
 import { useSnackbar } from 'src/components/snackbar';
 import Iconify from 'src/components/iconify';
 
-export default function ChargeTypeView({ setTab }) {
+export default function ChargeTypeView() {
   const { user } = useAuthContext();
   const { configs, mutate } = useGetConfigs();
   const [inputVal, setInputVal] = useState('');
@@ -35,6 +35,10 @@ export default function ChargeTypeView({ setTab }) {
   const [editTarget, setEditTarget] = useState(null);
   const [editValue, setEditValue] = useState('');
   const { enqueueSnackbar } = useSnackbar();
+
+  useEffect(() => {
+    setChargeTypes(configs?.chargeType || []);
+  }, [configs]);
 
   const filteredTypes = useMemo(() => {
     if (!search.trim()) return chargeTypes;
@@ -59,8 +63,9 @@ export default function ChargeTypeView({ setTab }) {
       setChargeTypes(newChargeTypes);
       setInputVal('');
       enqueueSnackbar('Charge type added successfully', { variant: 'success' });
-      setTab('Permission');
-      mutate();
+      mutate().catch((refreshErr) => {
+        console.error('Charge type saved, but refresh failed:', refreshErr);
+      });
     } catch (err) {
       console.error(err);
       enqueueSnackbar('Failed to add charge type', { variant: 'error' });
@@ -78,7 +83,9 @@ export default function ChargeTypeView({ setTab }) {
       await axios.put(URL, { ...configs, chargeType: updatedChargeTypes });
       setChargeTypes(updatedChargeTypes);
       enqueueSnackbar('Charge type deleted successfully', { variant: 'success' });
-      mutate();
+      mutate().catch((refreshErr) => {
+        console.error('Charge type deleted, but refresh failed:', refreshErr);
+      });
     } catch (err) {
       console.error(err);
       enqueueSnackbar('Failed to delete charge type', { variant: 'error' });
@@ -106,7 +113,9 @@ export default function ChargeTypeView({ setTab }) {
       await axios.put(URL, { ...configs, chargeType: updatedChargeTypes });
       setChargeTypes(updatedChargeTypes);
       enqueueSnackbar('Charge type updated successfully', { variant: 'success' });
-      mutate();
+      mutate().catch((refreshErr) => {
+        console.error('Charge type updated, but refresh failed:', refreshErr);
+      });
     } catch (err) {
       console.error(err);
       enqueueSnackbar('Failed to update charge type', { variant: 'error' });
